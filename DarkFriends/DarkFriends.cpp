@@ -108,18 +108,24 @@ void Bootstrap(HMODULE dll)
 	Log("Base is %p", baseAddress);
 
 	steamHandle = NULL;
-	do
+	while (true)
 	{
-		Sleep(100);
 		steamHandle = GetModuleHandle(TEXT("steam_api.dll"));
-	} while (steamHandle == NULL);
+		if (steamHandle == NULL)
+			Sleep(100);
+		else
+			break;
+	}
 
 	ISteamNetworking* network = NULL;
-	do
+	while (true)
 	{
-		Sleep(100);
 		network = ((ISteamNetworking*(*)(void))GetProcAddress(steamHandle, "SteamNetworking"))();
-	} while (network == NULL);
+		if (network == NULL)
+			Sleep(100);
+		else
+			break;
+	} 
 
 	originalSendP2PPacket = (SendP2PPacket_Ptr)(*(uint32**) network)[0]; // read vtable offset 0
 	Log("Found SendP2PPacket at %p", originalSendP2PPacket);
@@ -130,7 +136,7 @@ void Bootstrap(HMODULE dll)
 	DetourTransactionBegin();
 	DetourUpdateThread(GetCurrentThread());
 	DetourAttach((PVOID*)&originalSendP2PPacket, (PVOID)MySendP2PPacket); //DetourAttach will modify the first variable to point to trampoline
-	DetourAttach((PVOID*)&originalSendP2PPacket, (PVOID) MyReadP2PPacket);
+	DetourAttach((PVOID*)&originalReadP2PPacket, (PVOID)MyReadP2PPacket);
 	DetourTransactionCommit();
 
 	Log("Functions hooked successfully");
