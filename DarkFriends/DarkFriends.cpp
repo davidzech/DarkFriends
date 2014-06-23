@@ -108,11 +108,11 @@ void Bootstrap(HMODULE dll)
 	Log("Base is %p", baseAddress);
 
 	steamHandle = NULL;
-	while (steamHandle == NULL)
+	do
 	{
-		steamHandle = GetModuleHandle(TEXT("steam_api.dll"));
 		Sleep(100);
-	}
+		steamHandle = GetModuleHandle(TEXT("steam_api.dll"));
+	} while (steamHandle == NULL);
 
 	ISteamNetworking* network = NULL;
 	do
