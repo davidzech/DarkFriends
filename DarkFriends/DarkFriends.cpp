@@ -19,11 +19,13 @@ extern HMODULE steamHandle;
 
  __declspec(naked) bool __stdcall MySendP2PPacket(CSteamID steamIDRemote, const void *pubData, uint32 cubData, EP2PSend eP2PSendType, int nChannel)
 {
+	 void* This;
 	 __asm
 	 {
 			push ebp
 			mov ebp, esp
 			sub esp, __LOCAL_SIZE
+			mov This, ecx
 			lea eax, STEAM_FRIENDS
 			push eax
 			push steamHandle
@@ -43,6 +45,7 @@ extern HMODULE steamHandle;
 			push pubData
 			push dword ptr[ebp + 12]
 			push dword ptr[ebp + 8]
+			mov ecx, This // restore just in case
 			call originalSendP2PPacket
 			jmp EXIT;
 		NOTFRIEND:
@@ -58,11 +61,13 @@ extern HMODULE steamHandle;
 __declspec(naked) bool __stdcall MyReadP2PPacket(void *pubDest, uint32 cubDest, uint32 *pcubMsgSize, CSteamID *psteamIDRemote, int nChannel)
 {
 	bool res;
+	void *This;
 	__asm
 	{
 			push ebp
 			mov ebp, esp
 			sub esp, __LOCAL_SIZE
+			mov This, ecx
 			push nChannel
 			push psteamIDRemote
 			push pcubMsgSize
@@ -88,6 +93,7 @@ __declspec(naked) bool __stdcall MyReadP2PPacket(void *pubDest, uint32 cubDest, 
 		NOTFRIEND:
 			xor eax, eax
 		EXIT:
+			mov ecx, This
 			mov esp, ebp
 			pop ebp
 			retn 20
