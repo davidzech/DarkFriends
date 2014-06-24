@@ -10,7 +10,7 @@
 static char STEAM_FRIENDS[] = "SteamFriends";
 
 typedef bool(__thiscall *SendP2PPacket_Ptr)(CSteamID, const void *, uint32, EP2PSend, int);
-typedef bool(__thiscall *ReadP2PPacket_Ptr)(void *pubDest, uint32 cubDest, uint32 *pcubMsgSize, CSteamID *psteamIDRemote, int nChannel);
+typedef bool(__thiscall *ReadP2PPacket_Ptr)(void *, uint32, uint32 *, CSteamID *, int);
  
 static SendP2PPacket_Ptr originalSendP2PPacket = nullptr;
 static ReadP2PPacket_Ptr originalReadP2PPacket = nullptr;
@@ -33,10 +33,9 @@ extern HMODULE steamHandle;
 			call eax
 			mov edx, [eax]
 			mov edx, [edx + 20]
-			//push steamIDRemote
-			push dword ptr[ebp + 12]
+			push dword ptr[ebp + 12] 	//push steamIDRemote
 			push dword ptr[ebp + 8]
-			call edx; //call friends->GetFriendRelationship
+			call edx;					//call friends->GetFriendRelationship
 			cmp eax, k_EFriendRelationshipFriend
 			jne NOTFRIEND
 			push nChannel
@@ -45,7 +44,7 @@ extern HMODULE steamHandle;
 			push pubData
 			push dword ptr[ebp + 12]
 			push dword ptr[ebp + 8]
-			mov ecx, This // restore just in case
+			mov ecx, This				// restore just in case
 			call originalSendP2PPacket
 			jmp EXIT;
 		NOTFRIEND:
@@ -102,9 +101,7 @@ __declspec(naked) bool __stdcall MyReadP2PPacket(void *pubDest, uint32 cubDest, 
 
 void Bootstrap(HMODULE dll)
 {
-
 	HMODULE baseAddress = GetModuleHandle(NULL);
-
 	Log("Base is %p", baseAddress);
 
 	steamHandle = NULL;
@@ -140,10 +137,13 @@ void Bootstrap(HMODULE dll)
 	DetourTransactionCommit();
 
 	Log("Functions hooked successfully");
-
 }
 
 void Destroy()
 {
-	//need to implement this
+	DetourTransactionBegin();
+	DetourDetach((PVOID*)&originalSendP2PPacket, (PVOID)MySendP2PPacket);
+	DetourDetach((PVOID*)&originalReadP2PPacket, (PVOID)MyReadP2PPacket);
+	DetourTransactionCommit();
+	Log("Functions unhooked successfully");
 }
