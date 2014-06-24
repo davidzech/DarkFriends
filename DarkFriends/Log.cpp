@@ -12,6 +12,7 @@ void Log(std::string format, ...)
 {
 	va_list args;
 	va_start(args, format);
+	format += "\n";
 	vfprintf(logOut, format.c_str(), args); //this needs to write to file next to dll
 	va_end(args);
 

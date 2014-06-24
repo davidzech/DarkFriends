@@ -9,8 +9,8 @@
 
 static char STEAM_FRIENDS[] = "SteamFriends";
 
-typedef bool(__thiscall *SendP2PPacket_Ptr)(CSteamID, const void *, uint32, EP2PSend, int);
-typedef bool(__thiscall *ReadP2PPacket_Ptr)(void *, uint32, uint32 *, CSteamID *, int);
+typedef bool(__stdcall *SendP2PPacket_Ptr)(CSteamID, const void *, uint32, EP2PSend, int);
+typedef bool(__stdcall *ReadP2PPacket_Ptr)(void *, uint32, uint32 *, CSteamID *, int);
  
 static SendP2PPacket_Ptr originalSendP2PPacket = nullptr;
 static ReadP2PPacket_Ptr originalReadP2PPacket = nullptr;
@@ -26,16 +26,14 @@ extern HMODULE steamHandle;
 			mov ebp, esp
 			sub esp, __LOCAL_SIZE
 			mov This, ecx
-			lea eax, STEAM_FRIENDS
-			push eax
+			push offset STEAM_FRIENDS
 			push steamHandle
 			call GetProcAddress
 			call eax
 			mov edx, [eax]
-			mov edx, [edx + 20]
 			push dword ptr[ebp + 12] 	//push steamIDRemote
 			push dword ptr[ebp + 8]
-			call edx;					//call friends->GetFriendRelationship
+			call dword ptr[edx+20];					//call friends->GetFriendRelationship
 			cmp eax, k_EFriendRelationshipFriend
 			jne NOTFRIEND
 			push nChannel
@@ -63,7 +61,7 @@ __declspec(naked) bool __stdcall MyReadP2PPacket(void *pubDest, uint32 cubDest, 
 	void *This;
 	__asm
 	{
-			push ebp
+		push ebp
 			mov ebp, esp
 			sub esp, __LOCAL_SIZE
 			mov This, ecx
@@ -74,24 +72,23 @@ __declspec(naked) bool __stdcall MyReadP2PPacket(void *pubDest, uint32 cubDest, 
 			push pubDest
 			call originalReadP2PPacket
 			mov res, al
-			lea edx, STEAM_FRIENDS
-			push edx
+			push offset STEAM_FRIENDS
 			push steamHandle
 			call GetProcAddress
 			call eax
 			mov edx, [eax]
-			mov edx, [edx + 20]
-			lea eax, psteamIDRemote
-			push dword ptr[eax+4]
-			push dword ptr[eax]
-			call edx
+			mov ecx, psteamIDRemote
+			push dword ptr[ecx + 4]
+			push dword ptr[ecx]
+			mov ecx, eax
+			call dword ptr[edx+20]
 			cmp eax, k_EFriendRelationshipFriend
 			jne NOTFRIEND
 			mov al, res
 			jmp EXIT
-		NOTFRIEND:
+		NOTFRIEND :
 			xor eax, eax
-		EXIT:
+		EXIT :
 			mov ecx, This
 			mov esp, ebp
 			pop ebp

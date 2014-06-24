@@ -21,7 +21,7 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 			GetModuleFileName(hModule, fileName, MAX_PATH);
 			std::string dll = fileName;
 			dll += ".log";
-			if (fopen_s(&logOut, dll.c_str(), "a+") != 0)
+			if (fopen_s(&logOut, dll.c_str(), "a") != 0)
 			{
 				logOut = stdout;
 			}
