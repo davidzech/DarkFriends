@@ -21,11 +21,11 @@ namespace DarkFriendsInjector
     /// </summary>
     public partial class MainWindow : Window
     {
-
+        Thread backgroundThread;
         public MainWindow()
         {
             InitializeComponent();
-            Thread backgroundThread = new Thread(new ThreadStart(threadEntry));
+            backgroundThread = new Thread(new ThreadStart(threadEntry));
             backgroundThread.Start();
         }
 
@@ -79,6 +79,12 @@ namespace DarkFriendsInjector
             statusText.Text = "Idle";
         }
 
+        protected override void OnClosed(EventArgs e)
+        {
+            base.OnClosed(e);
+            backgroundThread.Abort();
+            Application.Current.Shutdown();
+        }
 
     }
 }
