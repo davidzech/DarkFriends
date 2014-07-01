@@ -33,6 +33,7 @@ extern HMODULE steamHandle;
 			mov edx, [eax]
 			push dword ptr[ebp + 12] 	//push steamIDRemote
 			push dword ptr[ebp + 8]
+			mov ecx, eax
 			call dword ptr[edx+20];					//call friends->GetFriendRelationship
 			cmp eax, k_EFriendRelationshipFriend
 			jne NOTFRIEND
@@ -61,7 +62,7 @@ __declspec(naked) bool __stdcall MyReadP2PPacket(void *pubDest, uint32 cubDest, 
 	void *This;
 	__asm
 	{
-		push ebp
+			push ebp
 			mov ebp, esp
 			sub esp, __LOCAL_SIZE
 			mov This, ecx
@@ -81,7 +82,7 @@ __declspec(naked) bool __stdcall MyReadP2PPacket(void *pubDest, uint32 cubDest, 
 			push dword ptr[ecx + 4]
 			push dword ptr[ecx]
 			mov ecx, eax
-			call dword ptr[edx+20]
+			call dword ptr[edx + 20]
 			cmp eax, k_EFriendRelationshipFriend
 			jne NOTFRIEND
 			mov al, res
