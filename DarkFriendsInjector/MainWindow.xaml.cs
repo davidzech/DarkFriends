@@ -25,7 +25,6 @@ namespace DarkFriendsInjector
         public MainWindow()
         {
             InitializeComponent();
-            this.
             backgroundThread = new Thread(new ThreadStart(threadEntry));
             backgroundThread.Start();
         }
@@ -84,6 +83,7 @@ namespace DarkFriendsInjector
         {
             base.OnClosed(e);
             backgroundThread.Abort();
+            Application.Current.Shutdown();
         }
     }
 }
