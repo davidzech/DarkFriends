@@ -28,6 +28,9 @@ extern HMODULE steamHandle;
 			 sub esp, __LOCAL_SIZE
 			 mov This, ecx
 	 }
+#if defined(_DEBUG)
+	 Log((const char*)"Caught SendP2PPacket to %llu", steamIDRemote.ConvertToUint64());
+#endif
 	 if (((ISteamFriends*(*)(void))GetProcAddress(steamHandle, STEAM_FRIENDS))()->GetFriendRelationship(steamIDRemote) == k_EFriendRelationshipFriend)
 	 {
 		 _asm {
@@ -74,6 +77,9 @@ __declspec(naked) bool __stdcall MyReadP2PPacket(void *pubDest, uint32 cubDest, 
 			call originalReadP2PPacket
 			mov res, al
 	}
+#if defined(_DEBUG)
+	Log("Caught ReadP2Packet to %llu", psteamIDRemote->ConvertToUint64());
+#endif
 	if (((ISteamFriends*(*)(void))GetProcAddress(steamHandle, STEAM_FRIENDS))()->GetFriendRelationship(*psteamIDRemote) != k_EFriendRelationshipFriend)
 	{
 		res = false;

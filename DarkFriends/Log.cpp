@@ -26,4 +26,3 @@ void Log(std::string format, ...)
 		OutputDebugString(buffer);
 	}
 }
-
