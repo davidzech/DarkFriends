@@ -20,34 +20,35 @@ extern HMODULE steamHandle;
  __declspec(naked) bool __stdcall MySendP2PPacket(CSteamID steamIDRemote, const void *pubData, uint32 cubData, EP2PSend eP2PSendType, int nChannel)
 {
 	 void* This;
+	 bool res;
 	 __asm
 	 {
-			push ebp
-			mov ebp, esp
-			sub esp, __LOCAL_SIZE
-			mov This, ecx
-			push offset STEAM_FRIENDS
-			push steamHandle
-			call GetProcAddress
-			call eax
-			mov edx, [eax]
-			push dword ptr[ebp + 12] 	//push steamIDRemote
-			push dword ptr[ebp + 8]
-			call dword ptr[edx+20];					//call friends->GetFriendRelationship
-			cmp eax, k_EFriendRelationshipFriend
-			jne NOTFRIEND
-			push nChannel
-			push eP2PSendType
-			push cubData
-			push pubData
-			push dword ptr[ebp + 12]
-			push dword ptr[ebp + 8]
-			mov ecx, This				// restore just in case
-			call originalSendP2PPacket
-			jmp EXIT;
-		NOTFRIEND:
-			xor eax, eax
-		EXIT:
+			 push ebp
+			 mov ebp, esp
+			 sub esp, __LOCAL_SIZE
+			 mov This, ecx
+	 }
+	 if (((ISteamFriends*(*)(void))GetProcAddress(steamHandle, STEAM_FRIENDS))()->GetFriendRelationship(steamIDRemote) == k_EFriendRelationshipFriend)
+	 {
+		 _asm {
+				 push nChannel
+				 push eP2PSendType
+				 push cubData
+				 push pubData
+				 push dword ptr[ebp + 12]
+				 push dword ptr[ebp + 8]
+				 mov ecx, This				// restore just in case
+				 call originalSendP2PPacket
+				 mov res, al
+		 }
+	 }
+	 else
+	 {
+		 res = false;
+	 }
+	_asm {
+			mov ecx, This
+			mov al, res;
 			mov esp, ebp
 			pop ebp
 			retn 18h
@@ -61,7 +62,7 @@ __declspec(naked) bool __stdcall MyReadP2PPacket(void *pubDest, uint32 cubDest, 
 	void *This;
 	__asm
 	{
-		push ebp
+			push ebp
 			mov ebp, esp
 			sub esp, __LOCAL_SIZE
 			mov This, ecx
@@ -72,24 +73,14 @@ __declspec(naked) bool __stdcall MyReadP2PPacket(void *pubDest, uint32 cubDest, 
 			push pubDest
 			call originalReadP2PPacket
 			mov res, al
-			push offset STEAM_FRIENDS
-			push steamHandle
-			call GetProcAddress
-			call eax
-			mov edx, [eax]
-			mov ecx, psteamIDRemote
-			push dword ptr[ecx + 4]
-			push dword ptr[ecx]
-			mov ecx, eax
-			call dword ptr[edx+20]
-			cmp eax, k_EFriendRelationshipFriend
-			jne NOTFRIEND
-			mov al, res
-			jmp EXIT
-		NOTFRIEND :
-			xor eax, eax
-		EXIT :
+	}
+	if (((ISteamFriends*(*)(void))GetProcAddress(steamHandle, STEAM_FRIENDS))()->GetFriendRelationship(*psteamIDRemote) != k_EFriendRelationshipFriend)
+	{
+		res = false;
+	}
+	_asm {
 			mov ecx, This
+			mov al, res
 			mov esp, ebp
 			pop ebp
 			retn 20

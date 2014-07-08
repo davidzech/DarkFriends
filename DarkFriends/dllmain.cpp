@@ -6,7 +6,8 @@
 
 HMODULE steamHandle;
 HMODULE thisModule;
-FILE *logOut = nullptr;
+const char* logFilePath = nullptr;
+HANDLE hFile;
 
 BOOL APIENTRY DllMain( HMODULE hModule,
                        DWORD  ul_reason_for_call,
@@ -21,11 +22,9 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 			GetModuleFileName(hModule, fileName, MAX_PATH);
 			std::string dll = fileName;
 			dll += ".log";
-			if (fopen_s(&logOut, dll.c_str(), "a") != 0)
-			{
-				logOut = stdout;
-			}
-			Log("Attached");
+			logFilePath = dll.c_str();
+			hFile = CreateFile(logFilePath, FILE_GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
+			Log("DarkFriends Attached");
 			DisableThreadLibraryCalls(hModule);
 			CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)&Bootstrap, hModule, 0, NULL);
 			break;

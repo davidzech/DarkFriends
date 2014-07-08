@@ -6,15 +6,24 @@
 using std::string;
 
 extern HMODULE thisModule;
-extern FILE* logOut;
+extern const char* logFile;
+extern HANDLE hFile;
 
 void Log(std::string format, ...) 
 {
+	char buffer[1024];
 	va_list args;
 	va_start(args, format);
-	format += "\n";
-	vfprintf(logOut, format.c_str(), args); //this needs to write to file next to dll
+	format += "\r\n";
+	vsnprintf(buffer, sizeof(buffer), format.c_str(), args);
 	va_end(args);
-
+	if (!IsDebuggerPresent())
+	{
+		WriteFile(hFile, buffer, strlen(buffer), NULL, NULL);
+	}
+	else
+	{
+		OutputDebugString(buffer);
+	}
 }
 
