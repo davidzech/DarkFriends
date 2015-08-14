@@ -14,3 +14,7 @@ DarkFriends however hooks Steam API functions instead of d3d calls, which
 may look more suspicious but VAC as offered by steamworks does not have
 automatic detection: Bamco has to contact Valve to report a cheat and
 for it's signature to be added to VAC.
+
+License:
+WTFPL
+http://www.wtfpl.net Do w/e
